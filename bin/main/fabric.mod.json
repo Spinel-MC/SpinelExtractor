@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "id": "spinelextractor",
+  "version": "${version}",
+  "name": "Spinel Extractor",
+  "description": "",
+  "authors": [],
+  "contact": {},
+  "license": "All-Rights-Reserved",
+  "icon": "assets/spinelextractor/icon.png",
+  "environment": "server",
+  "entrypoints": {
+    "fabric-datagen": [
+      "net.vaprant.spinelextractor.client.SpinelExtractorDataGenerator"
+    ],
+    "main": [
+      "net.vaprant.spinelextractor.SpinelExtractor"
+    ]
+  },
+  "mixins": [
+    "spinelextractor.mixins.json",
+    {
+      "config": "spinelextractor.client.mixins.json",
+      "environment": "client"
+    }
+  ],
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "fabric-api": "*",
+    "minecraft": "${minecraft_version}"
+  }
+}
