@@ -14,7 +14,11 @@ import java.util.Map;
 public final class JsonExtractionRepository {
 
     private static final Logger LOG = LoggerFactory.getLogger(JsonExtractionRepository.class);
-    private static final String OUTPUT_FILE_PATH = "spinel_extractor/packets.json";
+    private final String outputFilePath;
+
+    public JsonExtractionRepository(String outputFilePath) {
+        this.outputFilePath = outputFilePath;
+    }
 
     public void save(Map<String, Object> extractionData) {
         Gson jsonSerializer = new GsonBuilder()
@@ -23,7 +27,7 @@ public final class JsonExtractionRepository {
                 .create();
 
         try {
-            Path fileOutputPath = Paths.get(OUTPUT_FILE_PATH);
+            Path fileOutputPath = Paths.get(outputFilePath);
             Path parentDirectory = fileOutputPath.getParent();
 
             if (parentDirectory != null) {
