@@ -1,6 +1,9 @@
 package net.vaprant.spinelextractor.extractors;
 
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.component.DataComponentMap;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.vaprant.spinelextractor.protocol.persistence.JsonExtractionRepository;
 
@@ -32,11 +35,17 @@ public final class ItemExtractor {
     }
 
     private ItemDefinition extractItem(Item item) {
+        DataComponentMap components = item.components();
+        String blockItem = item instanceof BlockItem blockItemValue
+                ? BuiltInRegistries.BLOCK.getKey(blockItemValue.getBlock()).getPath()
+                : null;
         return new ItemDefinition(
                 BuiltInRegistries.ITEM.getId(item),
-                BuiltInRegistries.ITEM.getKey(item).getPath()
+                BuiltInRegistries.ITEM.getKey(item).getPath(),
+                blockItem,
+                components.getOrDefault(DataComponents.MAX_STACK_SIZE, 64)
         );
     }
 
-    private record ItemDefinition(int id, String name) {}
+    private record ItemDefinition(int id, String name, String blockItem, int maxStackSize) {}
 }
