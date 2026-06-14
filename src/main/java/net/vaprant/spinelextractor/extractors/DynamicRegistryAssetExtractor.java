@@ -35,6 +35,7 @@ public final class DynamicRegistryAssetExtractor {
             new RegistrySpec("wolf_sound_variant", Registries.WOLF_SOUND_VARIANT),
             new RegistrySpec("dialog", Registries.DIALOG),
             new RegistrySpec("enchantment", Registries.ENCHANTMENT),
+            new RegistrySpec("mob_effect", Registries.MOB_EFFECT),
             new RegistrySpec("timeline", Registries.TIMELINE),
             new RegistrySpec("zombie_nautilus_variant", Registries.ZOMBIE_NAUTILUS_VARIANT),
             new RegistrySpec("worldgen/biome", Registries.BIOME),

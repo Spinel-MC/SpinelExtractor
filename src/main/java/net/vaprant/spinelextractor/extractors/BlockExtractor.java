@@ -1,9 +1,13 @@
 package net.vaprant.spinelextractor.extractors;
 
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.level.EmptyBlockGetter;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.Property;
+import net.vaprant.spinelextractor.blocks.BlockShapeRegistry;
 import net.vaprant.spinelextractor.blocks.definition.BlockDefinition;
 import net.vaprant.spinelextractor.blocks.definition.BlockFlags;
 import net.vaprant.spinelextractor.blocks.definition.BlockStateDefinition;
@@ -16,6 +20,7 @@ import java.util.Map;
 
 public final class BlockExtractor {
     private static final String BLOCK_OUTPUT_FILE_PATH = "spinel_extractor/blocks.json";
+    private final BlockShapeRegistry blockShapeRegistry = new BlockShapeRegistry();
 
     public static void extract() {
         BlockExtractor extractor = new BlockExtractor();
@@ -26,6 +31,7 @@ public final class BlockExtractor {
     private Map<String, Object> extractBlocksFile() {
         Map<String, Object> extractionResult = new LinkedHashMap<>();
         extractionResult.put("blocks", extractBlocks());
+        extractionResult.put("block_shapes", blockShapeRegistry.shapes());
         return extractionResult;
     }
 
@@ -43,10 +49,22 @@ public final class BlockExtractor {
                 BuiltInRegistries.BLOCK.getKey(block).getPath(),
                 block.getDescriptionId(),
                 Block.getId(defaultState),
+                extractBlockEntityType(defaultState),
                 extractProperties(block),
                 extractStates(block),
+                block.defaultDestroyTime(),
+                block.getFriction(),
+                defaultState.requiresCorrectToolForDrops(),
                 extractFlags(defaultState)
         );
+    }
+
+    private String extractBlockEntityType(BlockState blockState) {
+        return BuiltInRegistries.BLOCK_ENTITY_TYPE.stream()
+                .filter(blockEntityType -> blockEntityType.isValid(blockState))
+                .findFirst()
+                .map(blockEntityType -> BuiltInRegistries.BLOCK_ENTITY_TYPE.getKey(blockEntityType).getPath())
+                .orElse(null);
     }
 
     private Map<String, List<String>> extractProperties(Block block) {
@@ -70,10 +88,6 @@ public final class BlockExtractor {
     private Map<String, BlockStateDefinition> extractStates(Block block) {
         Map<String, BlockStateDefinition> states = new LinkedHashMap<>();
 
-        if (block.getStateDefinition().getProperties().isEmpty()) {
-            return states;
-        }
-
         block.getStateDefinition().getPossibleStates()
                 .stream()
                 .sorted(Comparator.comparingInt(Block::getId))
@@ -85,8 +99,26 @@ public final class BlockExtractor {
     private BlockStateDefinition extractState(BlockState blockState) {
         return new BlockStateDefinition(
                 Block.getId(blockState),
-                extractStateProperties(blockState)
+                extractStateProperties(blockState),
+                blockState.getLightEmission(),
+                blockState.getLightBlock(),
+                blockState.propagatesSkylightDown(),
+                blockState.useShapeForLightOcclusion(),
+                blockShapeRegistry.register(blockState.getCollisionShape(EmptyBlockGetter.INSTANCE, BlockPos.ZERO)),
+                blockShapeRegistry.register(blockState.getOcclusionShape()),
+                extractFaceOcclusionShapes(blockState)
         );
+    }
+
+    private Map<String, Integer> extractFaceOcclusionShapes(BlockState blockState) {
+        Map<String, Integer> faceOcclusionShapes = new LinkedHashMap<>();
+        for (Direction direction : Direction.values()) {
+            faceOcclusionShapes.put(
+                    direction.getName(),
+                    blockShapeRegistry.register(blockState.getFaceOcclusionShape(direction))
+            );
+        }
+        return faceOcclusionShapes;
     }
 
     private Map<String, String> extractStateProperties(BlockState blockState) {
@@ -118,7 +150,8 @@ public final class BlockExtractor {
         return new BlockFlags(
                 defaultState.isAir(),
                 defaultState.isSolid(),
-                defaultState.liquid()
+                defaultState.liquid(),
+                defaultState.canBeReplaced()
         );
     }
 

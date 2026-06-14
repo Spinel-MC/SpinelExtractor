@@ -1,8 +1,12 @@
 package net.vaprant.spinelextractor.extractors;
 
+import com.google.gson.JsonElement;
+import com.mojang.serialization.JsonOps;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.resources.RegistryOps;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.vaprant.spinelextractor.protocol.persistence.JsonExtractionRepository;
@@ -14,9 +18,14 @@ import java.util.Map;
 
 public final class ItemExtractor {
     private static final String ITEM_OUTPUT_FILE_PATH = "spinel_extractor/items.json";
+    private final RegistryOps<JsonElement> registryJsonOps;
 
-    public static void extract() {
-        ItemExtractor extractor = new ItemExtractor();
+    public ItemExtractor(MinecraftServer server) {
+        registryJsonOps = RegistryOps.create(JsonOps.INSTANCE, server.registryAccess());
+    }
+
+    public static void extract(MinecraftServer server) {
+        ItemExtractor extractor = new ItemExtractor(server);
         new JsonExtractionRepository(ITEM_OUTPUT_FILE_PATH).save(extractor.extractItemsFile());
     }
 
@@ -43,9 +52,20 @@ public final class ItemExtractor {
                 BuiltInRegistries.ITEM.getId(item),
                 BuiltInRegistries.ITEM.getKey(item).getPath(),
                 blockItem,
-                components.getOrDefault(DataComponents.MAX_STACK_SIZE, 64)
+                components.getOrDefault(DataComponents.MAX_STACK_SIZE, 64),
+                extractComponents(components)
         );
     }
 
-    private record ItemDefinition(int id, String name, String blockItem, int maxStackSize) {}
+    private JsonElement extractComponents(DataComponentMap components) {
+        return DataComponentMap.CODEC.encodeStart(registryJsonOps, components).getOrThrow();
+    }
+
+    private record ItemDefinition(
+            int id,
+            String name,
+            String blockItem,
+            int maxStackSize,
+            JsonElement components
+    ) {}
 }
