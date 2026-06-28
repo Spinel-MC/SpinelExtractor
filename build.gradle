@@ -46,6 +46,19 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter:5.10.0")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")}
 
+sourceSets {
+    packetVerificationTest {
+        java.srcDir "src/packetVerificationTest/java"
+        compileClasspath += sourceSets.main.output + configurations.testRuntimeClasspath
+        runtimeClasspath += output + compileClasspath
+    }
+}
+
+configurations {
+    packetVerificationTestImplementation.extendsFrom testImplementation
+    packetVerificationTestRuntimeOnly.extendsFrom testRuntimeOnly
+}
+
 processResources {
     inputs.property "version", project.version
     inputs.property "minecraft_version", project.minecraft_version
@@ -90,6 +103,20 @@ jar {
 
 test {
     useJUnitPlatform()
+}
+
+tasks.register("packetVerificationTest", Test) {
+    testClassesDirs = sourceSets.packetVerificationTest.output.classesDirs
+    classpath = sourceSets.packetVerificationTest.runtimeClasspath
+    useJUnitPlatform()
+    testLogging {
+        events "failed"
+        exceptionFormat "full"
+    }
+    onlyIf { project.hasProperty("spinelPacketFixtures") }
+    if (project.hasProperty("spinelPacketFixtures")) {
+        systemProperty "spinel.packetFixtures", project.property("spinelPacketFixtures")
+    }
 }
 
 // configure the maven publication
