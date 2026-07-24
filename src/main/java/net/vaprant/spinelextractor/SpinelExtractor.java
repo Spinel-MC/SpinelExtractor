@@ -16,6 +16,7 @@ import net.vaprant.spinelextractor.extractors.ParticleTypeExtractor;
 import net.vaprant.spinelextractor.extractors.SoundEventExtractor;
 import net.vaprant.spinelextractor.extractors.StaticProtocolRegistryExtractor;
 import net.vaprant.spinelextractor.extractors.StaticRegistryTagExtractor;
+import net.vaprant.spinelextractor.extractors.VanillaResourceExtractor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,6 +41,7 @@ public class SpinelExtractor implements ModInitializer {
             DamageTypeExtractor.extract(server);
             EnchantmentExtractor.extract(server);
             DynamicRegistryAssetExtractor.extract(server);
+            VanillaResourceExtractor.extract(server);
             StaticProtocolRegistryExtractor.extract();
             StaticRegistryTagExtractor.extract();
             LOGGER.info("Extraction complete, stopping server...");
